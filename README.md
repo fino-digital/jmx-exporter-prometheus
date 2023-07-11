@@ -1,20 +1,42 @@
 # Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+This container packages the [prometheus jmx-exporter](https://github.com/prometheus/jmx_exporter) java agent that can be used to monitor JVM applications.
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+# Usage
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+This container is best used as initContainer. Copy the agent over to the shared volume
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+```yaml
+spec:
+  initContainers:
+  - name: prometheus-jmx-exporter
+    image: finodigital/jmx-exporter-prometheus:0.19.0
+    env:
+    - name: shared-volume
+      emptyDir: {}
+    volumeMounts:
+    - mountPath: /jmx-agent
+      name: shared-volume
+    args:
+      - -c
+      - mkdir -p /jmx-agent && cp -r /agent/jmx_prometheus_javaagent.jar /jmx-agent/agent.jar
+    command:
+      - sh
+```
+
+Then attach the agent to your java application, for example with `JAVA_TOOL_OPTIONS`
+
+```yaml
+spec:
+  containers:
+    - name: your-application
+      image: your-image
+      env:
+        - name: JAVA_TOOL_OPTIONS
+          value: -javaagent:/jmx-agent/agent.jar=1234:/path/to/config
+```
+
+
+// TODO:
+// - Describe/open port
+// - configuration (as config map)
