@@ -4,6 +4,7 @@ on:
   push:
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
+  workflow_dispatch: {} # allow to run pipeline manually 
 
 env:
   # Use docker.io for Docker Hub if empty
